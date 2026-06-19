@@ -56,7 +56,7 @@
 <div class="wrap">
   <div class="tools" id="tools"></div>
   <footer>Made for you with love &#128156;</footer>
-  <div class="version">v1.0-beta.5</div>
+  <div class="version">v1.0-beta.6</div>
 </div>
 <div class="guide-overlay" id="installGuide" onclick="if(event.target===this)closeGuide()">
   <div class="guide-card">
@@ -122,7 +122,14 @@ function openGuide(){
 }
 function closeGuide(){document.getElementById('installGuide').classList.remove('show');}
 function copyLink(ev){if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(()=>{if(ev&&ev.target)ev.target.textContent='Copied! ✅';});}
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+// Auto-update: when a new version is deployed, the new service worker takes over and the app
+// silently reloads to the latest (no manual refresh / cache-clearing needed).
+if('serviceWorker' in navigator){
+  let _refreshing=false;
+  const _hadController=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(_refreshing)return;_refreshing=true;if(_hadController)location.reload();});
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(reg=>{setInterval(()=>reg.update(),60*60*1000);}).catch(()=>{}));
+}
 </script>
 </body>
 </html>
