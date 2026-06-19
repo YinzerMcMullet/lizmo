@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lizmo &middot; Filament Colors</title>
+<meta name="theme-color" content="#0ea5a4">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../../icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lizmo">
+<style>
+  :root{
+    --bg:#f4f6f8;--card:#fff;--ink:#1f2733;--muted:#69727e;--line:#e5e9ee;
+    --teal:#0ea5a4;--teal-dark:#0b8483;--teal-soft:#e6f7f6;--save:#16a34a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,Roboto,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.4;padding-bottom:158px;}
+  header{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;padding:18px 16px 15px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:0 2px 14px rgba(15,40,45,.18);}
+  .brand{font-size:24px;font-weight:900;letter-spacing:.5px;line-height:1;}
+  header p{margin:6px 0 0;font-size:14px;opacity:.95;}
+  .back-btn{position:absolute;left:12px;top:14px;background:rgba(255,255,255,.22);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:24px;font-weight:bold;line-height:1;}
+  .help-btn{position:absolute;right:12px;top:16px;background:rgba(255,255,255,.22);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;font-weight:bold;}
+  .pagetabs{display:flex;gap:10px;padding:14px 12px 4px;}
+  .pagetab{flex:1;padding:14px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;font-size:17px;font-weight:800;text-align:center;color:var(--muted);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .pagetab small{display:block;font-weight:500;font-size:12px;margin-top:2px;}
+  .pagetab.active{border-color:var(--teal);color:var(--teal-dark);background:var(--teal-soft);}
+  .subtabs{display:flex;gap:8px;overflow-x:auto;padding:8px 12px 10px;scrollbar-width:none;}
+  .subtabs::-webkit-scrollbar{display:none;}
+  .subtab{flex:0 0 auto;padding:10px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;font-size:15px;font-weight:600;white-space:nowrap;color:var(--muted);}
+  .subtab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .swipe-hint{text-align:center;font-size:12px;color:var(--muted);margin:-2px 0 2px;}
+  .typeinfo{margin:2px 12px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .typeinfo h2{margin:0 0 2px;font-size:20px;color:var(--ink);}
+  .typeinfo .price{font-size:14px;font-weight:600;color:var(--teal-dark);}
+  .typeinfo .desc{font-size:13px;color:var(--muted);margin-top:3px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 12px;}
+  @media(min-width:520px){.grid{grid-template-columns:1fr 1fr 1fr;}}
+  .swatch{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px;position:relative;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .08s;}
+  .swatch:active{transform:scale(.97);}
+  .swatch.sel{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,165,164,.2);}
+  .chip{width:100%;aspect-ratio:1/1;border-radius:12px;object-fit:cover;background:#eef1f4;display:block;}
+  .swatch .nm{font-size:14px;font-weight:700;line-height:1.2;min-height:34px;display:flex;align-items:center;justify-content:center;margin-top:6px;}
+  .swatch .pr{font-size:13px;color:var(--muted);}
+  .tick{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-size:19px;font-weight:bold;display:none;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.3);}
+  .swatch.sel .tick{display:flex;}
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(0,0,0,.12);padding:10px 12px calc(14px + env(safe-area-inset-bottom));}
+  .barrow{display:flex;align-items:center;gap:10px;}
+  .count{background:var(--teal);color:#fff;border-radius:12px;padding:8px 12px;font-weight:800;font-size:16px;text-align:center;min-width:64px;}
+  .count small{display:block;font-weight:600;font-size:11px;opacity:.9;}
+  .tier{flex:1;font-size:13px;line-height:1.3;}
+  .tier b{color:var(--teal-dark);}
+  .barbtns{display:flex;gap:8px;margin-top:8px;}
+  .btn{flex:1;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;}
+  .btn-list{background:#eef1f4;color:var(--ink);}
+  .btn-send{background:var(--teal);color:#fff;}
+  .overlay{position:fixed;inset:0;background:rgba(20,30,35,.55);z-index:100;display:none;align-items:flex-end;}
+  .overlay.show{display:flex;}
+  .overlay.center{align-items:center;padding:16px;}
+  .sheet{background:#fff;width:100%;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));}
+  .sheet h2{margin:0 0 4px;font-size:22px;color:var(--ink);}
+  .sheet .sub{color:var(--muted);font-size:14px;margin:0 0 12px;}
+  .listgrp{margin-bottom:14px;}
+  .listgrp h3{margin:0 0 6px;font-size:15px;border-bottom:2px solid var(--line);padding-bottom:4px;}
+  .li{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:15px;}
+  .li img{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:0 0 auto;}
+  .li .x{margin-left:auto;color:var(--teal-dark);background:var(--teal-soft);border:none;border-radius:8px;padding:6px 10px;font-weight:700;}
+  .totals{background:var(--teal-soft);border-radius:14px;padding:14px;margin:10px 0 16px;font-size:15px;}
+  .totals .big{font-size:24px;font-weight:800;color:var(--teal-dark);}
+  .totals .strike{color:var(--muted);text-decoration:line-through;font-size:15px;}
+  .totals .save{color:var(--save);font-weight:800;}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;}
+  .send-big{display:block;width:100%;background:var(--teal);color:#fff;border:none;border-radius:16px;padding:18px;font-size:18px;font-weight:800;margin-bottom:8px;box-shadow:0 4px 12px rgba(14,165,164,.3);}
+  .alt-btn{display:block;width:100%;background:#fff;color:var(--teal-dark);border:2px solid var(--line);border-radius:14px;padding:13px;font-size:15px;font-weight:700;margin-bottom:8px;}
+  .close{display:block;width:100%;background:#eef1f4;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:700;margin-top:4px;color:var(--ink);}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.4;}
+  .help-card{background:#fff;border-radius:18px;padding:22px;max-width:480px;margin:auto;}
+  .help-card h2{margin-top:0;color:var(--ink);}
+  .help-card ol{padding-left:20px;line-height:1.7;}
+  .toast{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:200;opacity:0;transition:.3s;pointer-events:none;text-align:center;max-width:90%;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<header>
+  <button class="back-btn" onclick="location.href='../../'" aria-label="Back to Lizmo">&#8249;</button>
+  <button class="help-btn" onclick="openHelp()">?</button>
+  <div class="brand">Filament Colors</div>
+  <p>Pick the colors you like &mdash; I'll get the rest!</p>
+</header>
+<div class="pagetabs" id="pagetabs"></div>
+<div class="swipe-hint">&#11013; swipe the buttons below for more kinds &#10145;</div>
+<div class="subtabs" id="subtabs"></div>
+<div class="typeinfo" id="typeinfo"></div>
+<div class="grid" id="grid"></div>
+<div class="bar">
+  <div class="barrow">
+    <div class="count" id="count">0<small>rolls</small></div>
+    <div class="tier" id="tier"></div>
+  </div>
+  <div class="barbtns">
+    <button class="btn btn-list" onclick="openReview()">&#128203; My List</button>
+    <button class="btn btn-send" onclick="openReview()">&#9989; Done</button>
+  </div>
+</div>
+<div class="overlay" id="reviewOverlay">
+  <div class="sheet">
+    <h2>&#128722; Your Picks</h2>
+    <p class="sub">Check your colors, then send them to me.</p>
+    <div id="reviewList"></div>
+    <div class="totals" id="totals"></div>
+    <button class="send-big" id="sendBtn" onclick="sendText()">&#128241; Text my picks</button>
+    <button class="alt-btn" onclick="sharePicks()">&#128257; Share another way</button>
+    <button class="alt-btn" onclick="copyPicks()">&#128203; Copy the list</button>
+    <button class="close" onclick="closeReview()">&larr; Keep looking</button>
+    <p class="note">Prices shown are the regular roll price &mdash; the bulk discount &amp; final total apply at checkout. &#128075;</p>
+  </div>
+</div>
+<div class="overlay center" id="helpOverlay">
+  <div class="help-card">
+    <h2>How to use this &#128075;</h2>
+    <ol>
+      <li><b>Two big buttons at top</b> = two pages: <i>Basic Colors</i> and <i>Aesthetic</i>.</li>
+      <li><b>The round buttons</b> below are the different kinds. Swipe them sideways for more.</li>
+      <li><b>Tap any color photo</b> you like. A teal &#10003; means it's picked. Tap again to un-pick.</li>
+      <li>The bar at the bottom counts your rolls and shows your <b>discount</b>.</li>
+      <li>When done, tap <b>Done</b>, then <b>Text my picks</b> &mdash; it'll open your texting app, all typed out. Just hit send!</li>
+    </ol>
+    <p style="font-size:13px;color:#69727e">Tip: more rolls = bigger discount. 18 rolls = 45% off!</p>
+    <button class="close" onclick="closeHelp()">Got it &#128077;</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="data.js"></script>
+<script>
+// --- who the picks get sent to (set by owner) ---
+const SON_NAME = "Justin";      // shown on the send button
+const SON_PHONE = "+17245240183"; // Justin — "Text my picks to Justin" opens her texting app pre-filled
+// -------------------------------------------------
+let curPage=0,curType=0;const picks={};const $=id=>document.getElementById(id);
+function keyOf(p,t,i){return p+"|"+t+"|"+i;}
+function renderPageTabs(){$("pagetabs").innerHTML=DATA.map((p,i)=>`<div class="pagetab ${i===curPage?'active':''}" onclick="setPage(${i})">${p.name}<small>${p.sub}</small></div>`).join("");}
+function renderSubTabs(){$("subtabs").innerHTML=DATA[curPage].types.map((t,i)=>`<div class="subtab ${i===curType?'active':''}" onclick="setType(${i})">${t.name}</div>`).join("");}
+function money(v){return v==null?'':'$'+Number(v).toFixed(2);}
+function renderType(){
+  const t=DATA[curPage].types[curType];
+  $("typeinfo").innerHTML=`<h2>${t.name}</h2><div class="price">${t.price?('From '+money(t.price)+' per roll'):''} <span style="color:#69727e;font-weight:400">(before discount)</span></div><div class="desc">${t.desc}</div>`;
+  $("grid").innerHTML=t.colors.map((c,i)=>{
+    const sel=picks[keyOf(curPage,curType,i)]?'sel':'';
+    return `<div class="swatch ${sel}" onclick="toggle(${curPage},${curType},${i})"><div class="tick">&#10003;</div><img class="chip" loading="lazy" src="${c.img}" alt="${c.n}"><div class="nm">${c.n}</div><div class="pr">${money(c.p)}</div></div>`;
+  }).join("");
+}
+function setPage(i){curPage=i;curType=0;renderPageTabs();renderSubTabs();renderType();window.scrollTo(0,0);}
+function setType(i){curType=i;renderSubTabs();renderType();window.scrollTo({top:0,behavior:'smooth'});}
+function toggle(p,t,i){const k=keyOf(p,t,i);const ty=DATA[p].types[t];const c=ty.colors[i];if(picks[k])delete picks[k];else picks[k]={typeName:ty.name,colorName:c.n,img:c.img,price:c.p};renderType();updateBar();}
+function discountFor(q){for(const tr of TIERS)if(q>=tr.q)return tr.off;return 0;}
+function nextTier(q){for(let k=TIERS.length-1;k>=0;k--)if(q<TIERS[k].q)return TIERS[k];return null;}
+function totals(){const items=Object.values(picks);const qty=items.length;const full=items.reduce((s,x)=>s+(x.price||0),0);const off=discountFor(qty);const final=full*(1-off/100);return{qty,full,off,final,saved:full-final,items};}
+function updateBar(){const t=totals();$("count").innerHTML=`${t.qty}<small>rolls</small>`;if(t.qty===0){$("tier").innerHTML="Pick <b>4+ rolls</b> to unlock 25% off!";return;}const nt=nextTier(t.qty);let m=`Discount: <b>${t.off}% off</b>`;if(nt)m+=` &bull; ${nt.q-t.qty} more &rarr; <b>${nt.off}% off</b>`;else m+=` &bull; biggest discount! &#127881;`;$("tier").innerHTML=m;}
+function openReview(){const t=totals();if(t.qty===0){$("reviewList").innerHTML=`<div class="empty">No colors picked yet.<br>Tap some colors you like first! &#128075;</div>`;$("totals").innerHTML="";}else{const g={};Object.entries(picks).forEach(([k,v])=>{(g[v.typeName]=g[v.typeName]||[]).push([k,v]);});$("reviewList").innerHTML=Object.entries(g).map(([tn,arr])=>`<div class="listgrp"><h3>${tn} <span style="color:#69727e;font-weight:500">(${arr.length})</span></h3>`+arr.map(([k,v])=>`<div class="li"><img src="${v.img}" alt=""> ${v.colorName} <span style="color:#69727e">${money(v.price)}</span><button class="x" onclick="removeKey('${k}')">Remove</button></div>`).join("")+`</div>`).join("");$("totals").innerHTML=`<div>Rolls: <b>${t.qty}</b></div><div>Discount: <b>${t.off}% off</b></div><div style="margin-top:6px">Estimated total: <span class="strike">${money(t.full)}</span> <span class="big"> ${money(t.final)}</span></div><div class="save">You save about ${money(t.saved)}!</div>`;}$("sendBtn").innerHTML=`&#128241; Text my picks${SON_NAME?(' to '+SON_NAME):''}`;$("reviewOverlay").classList.add("show");}
+function removeKey(k){delete picks[k];renderType();updateBar();openReview();}
+function closeReview(){$("reviewOverlay").classList.remove("show");}
+function buildText(){const t=totals();if(t.qty===0)return"Hi! I haven't picked any filaments yet.";const g={};Object.values(picks).forEach(v=>{(g[v.typeName]=g[v.typeName]||[]).push(v.colorName);});let s="\u{1F3A8} MY FILAMENT PICKS\n\n";for(const[tn,arr]of Object.entries(g)){s+=`${tn}:\n`;arr.forEach(c=>s+=`  - ${c}\n`);s+="\n";}s+=`Total rolls: ${t.qty}\nDiscount: ${t.off}% off\nEstimated total: ${money(t.final)} (was ${money(t.full)})\n\nLove you! ❤️`;return s;}
+function sendText(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const num=(SON_PHONE||"").replace(/[^\d+]/g,"");location.href="sms:"+num+"?body="+encodeURIComponent(buildText());}
+async function sharePicks(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const text=buildText();if(navigator.share){try{await navigator.share({title:"My Filament Picks",text});}catch(e){}}else copyPicks();}
+function copyPicks(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const text=buildText();if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast("Copied! Paste it in a text \u{1F4CB}"),()=>fb(text));else fb(text);}
+function fb(text){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");showToast("Copied! Paste it in a text \u{1F4CB}");}catch(e){showToast("Press and hold to copy");}document.body.removeChild(ta);}
+function openHelp(){$("helpOverlay").classList.add("show");}
+function closeHelp(){$("helpOverlay").classList.remove("show");}
+let tt;function showToast(m){const e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2600);}
+document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");}));
+renderPageTabs();renderSubTabs();renderType();updateBar();
+if(!localStorage.getItem("lizmoSeenFilamentHelp")){openHelp();localStorage.setItem("lizmoSeenFilamentHelp","1");}
+</script>
+</body>
+</html>

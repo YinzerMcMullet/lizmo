@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lizmo</title>
+<meta name="theme-color" content="#0ea5a4">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lizmo">
+<style>
+  :root{
+    --bg:#f4f6f8;--card:#fff;--ink:#1f2733;--muted:#69727e;--line:#e5e9ee;
+    --teal:#0ea5a4;--teal-dark:#0b8483;--teal-soft:#e6f7f6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,Roboto,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.4;min-height:100vh;}
+  header{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;padding:30px 16px 26px;text-align:center;box-shadow:0 2px 14px rgba(15,40,45,.18);}
+  .brand{font-size:38px;font-weight:900;letter-spacing:1px;line-height:1;}
+  .brand .dot{color:#bdf3ef;}
+  header p{margin:10px 0 0;font-size:16px;opacity:.95;}
+  #installBar{display:none;background:var(--teal-soft);color:var(--teal-dark);text-align:center;padding:13px 14px;font-weight:700;border-bottom:1px solid #cdeeec;}
+  .wrap{padding:18px 14px 30px;max-width:560px;margin:0 auto;}
+  .tools{display:flex;flex-direction:column;gap:14px;}
+  .tool{display:flex;align-items:center;gap:16px;width:100%;text-align:left;text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.05);transition:transform .08s;}
+  .tool:active{transform:scale(.98);}
+  .tool .emoji{font-size:38px;flex:0 0 auto;width:58px;height:58px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);border-radius:16px;}
+  .tool .nm{font-size:21px;font-weight:800;line-height:1.15;}
+  .tool .bl{font-size:14px;color:var(--muted);margin-top:3px;}
+  .tool .tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;color:var(--teal-dark);background:var(--teal-soft);border-radius:999px;padding:2px 9px;}
+  .tool .arrow{margin-left:auto;color:var(--teal);font-size:26px;font-weight:bold;flex:0 0 auto;}
+  .empty{text-align:center;color:var(--muted);padding:50px 16px;}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Lizmo<span class="dot">.</span></div>
+  <p>Hi Mom! &#128156; Tap whatever you need.</p>
+</header>
+<div id="installBar" onclick="doInstall()">&#128241; Tap here to add Lizmo to your phone like an app</div>
+<div class="wrap">
+  <div class="tools" id="tools"></div>
+  <footer>Made for you with love &#128156;</footer>
+</div>
+<script>
+// === LIZMO TOOL MENU ============================================
+// To ADD a tool: drop a folder in tools/ and add a line here.
+// To REMOVE a tool: delete its line here (and its folder).
+// ================================================================
+const TOOLS = [
+  {
+    emoji: "\u{1F3A8}",                 // 🎨
+    name: "Filament Colors",
+    blurb: "Pick the colors you like and send them to me",
+    href: "tools/filaments/",
+    tag:  "just for now"                 // remove this line when it's a keeper; whole entry when retired
+  }
+];
+// ================================================================
+const box = document.getElementById("tools");
+if (TOOLS.length === 0){
+  box.innerHTML = `<div class="empty">Nothing here right now &#128075;<br>I'll add something when you need it.</div>`;
+} else {
+  box.innerHTML = TOOLS.map(t => `
+    <a class="tool" href="${t.href}">
+      <div class="emoji">${t.emoji}</div>
+      <div>
+        <div class="nm">${t.name}</div>
+        <div class="bl">${t.blurb}</div>
+        ${t.tag ? `<span class="tag">${t.tag}</span>` : ""}
+      </div>
+      <div class="arrow">&#8250;</div>
+    </a>`).join("");
+}
+// PWA install + service worker (relative paths so it works under /lizmo/)
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBar").style.display='block';});
+function doInstall(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;document.getElementById("installBar").style.display='none';});}else{alert("Open the browser menu (⋮) and tap “Add to Home screen”");}}
+window.addEventListener('appinstalled',()=>{document.getElementById("installBar").style.display='none';});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
