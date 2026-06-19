@@ -36,6 +36,15 @@
   footer{text-align:center;color:var(--muted);font-size:12px;padding:20px 20px 4px;}
   .version{text-align:center;color:var(--muted);font-size:11px;letter-spacing:1px;padding-bottom:20px;}
   .beta-pill{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:2px;color:#0a0a0a;background:#FFB81C;border-radius:4px;padding:2px 8px;vertical-align:middle;margin-left:6px;}
+  .guide-overlay{position:fixed;inset:0;background:rgba(20,30,35,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:18px;}
+  .guide-overlay.show{display:flex;}
+  .guide-card{background:#fff;border-radius:18px;padding:22px;max-width:420px;width:100%;}
+  .guide-card h2{margin:0 0 12px;font-size:21px;color:var(--ink);}
+  .guide-card ol{padding-left:22px;line-height:1.85;font-size:16px;margin:0;}
+  .guide-card p{font-size:15px;margin:0 0 8px;}
+  .shareic{display:inline-block;border:1.5px solid currentColor;border-radius:5px;padding:0 6px;font-weight:bold;line-height:1.2;}
+  .guide-alt{display:block;width:100%;margin-top:12px;background:#eef1f4;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:700;color:var(--ink);}
+  .guide-close{display:block;width:100%;margin-top:14px;background:var(--teal);color:#fff;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;}
 </style>
 </head>
 <body>
@@ -47,7 +56,14 @@
 <div class="wrap">
   <div class="tools" id="tools"></div>
   <footer>Made for you with love &#128156;</footer>
-  <div class="version">v1.0-beta.4</div>
+  <div class="version">v1.0-beta.5</div>
+</div>
+<div class="guide-overlay" id="installGuide" onclick="if(event.target===this)closeGuide()">
+  <div class="guide-card">
+    <h2>Add Lizmo to your phone &#128241;</h2>
+    <div id="guideSteps"></div>
+    <button class="guide-close" onclick="closeGuide()">Got it &#128077;</button>
+  </div>
 </div>
 <script>
 // === LIZMO TOOL MENU ============================================
@@ -79,13 +95,33 @@ if (TOOLS.length === 0){
       <div class="arrow">&#8250;</div>
     </a>`).join("");
 }
-// PWA install + service worker (relative paths so it works under /lizmo/)
+// PWA install — one button everywhere: real one-tap install on Android/desktop Chrome/Edge,
+// guided steps on iPhone/iPad (Apple has no install API), works in-browser elsewhere.
 let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBar").style.display='block';});
-// iOS Safari never fires beforeinstallprompt — show a tailored "Add to Home Screen" hint instead.
-(function(){var iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);var standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;if(iOS&&!standalone){var b=document.getElementById("installBar");if(b){b.innerHTML='&#128241; To add Lizmo: tap <b>Share</b> &#x2191; then <b>Add to Home Screen</b> (use Safari)';b.style.display='block';b.onclick=function(){};}}})();
-function doInstall(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;document.getElementById("installBar").style.display='none';});}else{alert("Open the browser menu (⋮) and tap “Add to Home screen”");}}
-window.addEventListener('appinstalled',()=>{document.getElementById("installBar").style.display='none';});
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function isIOSSafari(){return isIOS()&&/safari/i.test(navigator.userAgent)&&!/crios|fxios|edgios/i.test(navigator.userAgent);}
+function inApp(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;}
+const _ib=()=>document.getElementById("installBar");
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;_ib().style.display='block';});
+window.addEventListener('appinstalled',()=>{_ib().style.display='none';});
+if(isIOS()&&!inApp()){_ib().style.display='block';}
+function doInstall(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;_ib().style.display='none';});return;}
+  openGuide();
+}
+function openGuide(){
+  const s=document.getElementById('guideSteps');
+  if(isIOSSafari()){
+    s.innerHTML='<ol><li>Tap the <b>Share</b> button (<span class="shareic">&#x2191;</span>) at the bottom of the screen.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b> &mdash; Lizmo lands on your home screen like an app! &#127881;</li></ol>';
+  } else if(isIOS()){
+    s.innerHTML='<p>On iPhone, apps can only be added from <b>Safari</b>.</p><ol><li>Open this page in <b>Safari</b> (copy the link below).</li><li>Then tap <b>Share</b> (<span class="shareic">&#x2191;</span>) &rarr; <b>Add to Home Screen</b>.</li></ol><button class="guide-alt" onclick="copyLink(event)">&#128203; Copy the link</button>';
+  } else {
+    s.innerHTML='<p>Open your browser menu and choose <b>Install Lizmo</b> or <b>Add to Home screen</b>.</p>';
+  }
+  document.getElementById('installGuide').classList.add('show');
+}
+function closeGuide(){document.getElementById('installGuide').classList.remove('show');}
+function copyLink(ev){if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(()=>{if(ev&&ev.target)ev.target.textContent='Copied! ✅';});}
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 </script>
 </body>
