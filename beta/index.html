@@ -47,7 +47,7 @@
 <div class="wrap">
   <div class="tools" id="tools"></div>
   <footer>Made for you with love &#128156;</footer>
-  <div class="version">v1.0-beta.3</div>
+  <div class="version">v1.0-beta.4</div>
 </div>
 <script>
 // === LIZMO TOOL MENU ============================================
@@ -82,6 +82,8 @@ if (TOOLS.length === 0){
 // PWA install + service worker (relative paths so it works under /lizmo/)
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBar").style.display='block';});
+// iOS Safari never fires beforeinstallprompt — show a tailored "Add to Home Screen" hint instead.
+(function(){var iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);var standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;if(iOS&&!standalone){var b=document.getElementById("installBar");if(b){b.innerHTML='&#128241; To add Lizmo: tap <b>Share</b> &#x2191; then <b>Add to Home Screen</b> (use Safari)';b.style.display='block';b.onclick=function(){};}}})();
 function doInstall(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;document.getElementById("installBar").style.display='none';});}else{alert("Open the browser menu (⋮) and tap “Add to Home screen”");}}
 window.addEventListener('appinstalled',()=>{document.getElementById("installBar").style.display='none';});
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
