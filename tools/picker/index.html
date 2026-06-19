@@ -17,7 +17,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
-  body{font-family:-apple-system,Roboto,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.4;padding-bottom:158px;}
+  body{font-family:-apple-system,Roboto,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.4;padding-bottom:200px;}
   header{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;padding:18px 16px 15px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:0 2px 14px rgba(15,40,45,.18);}
   .brand{font-size:24px;font-weight:900;letter-spacing:.5px;line-height:1;}
   header p{margin:6px 0 0;font-size:14px;opacity:.95;}
@@ -54,6 +54,13 @@
   .count small{display:block;font-weight:600;font-size:11px;opacity:.9;}
   .tier{flex:1;font-size:13px;line-height:1.3;}
   .tier b{color:var(--teal-dark);}
+  .meter{position:relative;height:9px;background:var(--line);border-radius:999px;margin:14px 8px 26px;}
+  .meter-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-dark));border-radius:999px;transition:width .3s ease;}
+  .meter .mk{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:#fff;border:2px solid var(--line);transform:translate(-50%,-50%);z-index:2;}
+  .meter .mk.on{background:var(--teal);border-color:var(--teal-dark);}
+  .meter .mklbl{position:absolute;top:15px;font-size:10px;font-weight:800;color:var(--muted);transform:translateX(-50%);white-space:nowrap;}
+  .meter .mklbl.on{color:var(--teal-dark);}
+  .meter .mkfull{position:absolute;right:-2px;top:-22px;font-size:11px;font-weight:800;color:var(--teal-dark);}
   .barbtns{display:flex;gap:8px;margin-top:8px;}
   .btn{flex:1;border:none;border-radius:14px;padding:14px;font-size:16px;font-weight:800;}
   .btn-list{background:#eef1f4;color:var(--ink);}
@@ -84,7 +91,7 @@
   .budgetbox{background:#f4f6f8;border-radius:14px;padding:12px 14px;margin:2px 0 14px;font-size:15px;}
   .budgetbox input{font-size:16px;width:96px;padding:7px 9px;border:2px solid var(--line);border-radius:8px;margin-left:2px;}
   .budgetstatus{margin-top:8px;font-size:15px;line-height:1.3;}
-  .toast{position:fixed;bottom:178px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:200;opacity:0;transition:.3s;pointer-events:none;text-align:center;max-width:90%;}
+  .toast{position:fixed;bottom:220px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:200;opacity:0;transition:.3s;pointer-events:none;text-align:center;max-width:90%;}
   .toast.show{opacity:1;}
 </style>
 </head>
@@ -106,6 +113,7 @@
     <div class="count" id="count">0<small>rolls</small></div>
     <div class="tier" id="tier"></div>
   </div>
+  <div class="meter" id="meter"></div>
   <div class="barbtns">
     <button class="btn btn-list" onclick="openReview()">&#128203; My List</button>
     <button class="btn btn-send" onclick="openReview()">&#9989; Done</button>
@@ -207,6 +215,14 @@ function updateBar(){
   let l2='';
   if(t.qty>0){l2=`Total: <b>${money(t.grand)}</b>`;if(budget>0){const d=budget-t.grand;l2+=d>=0?` &middot; <b style="color:#16a34a">${money(d)} left</b>`:` &middot; <b style="color:#dc2626">over ${money(-d)}</b>`;}else if(t.toFree>0){l2+=` &middot; <span style="color:#69727e">+${money(t.toFree)}=free ship</span>`;}}
   $("tier").innerHTML=l2?`${l1}<br><span style="color:#69727e">${l2}</span>`:l1;
+  renderMeter(cnt,ladder);
+}
+function renderMeter(cnt,ladder){
+  const cap=ladder[ladder.length-1].q, fill=Math.min(100,(cnt/cap)*100), full=cnt>=cap;
+  let h=`<div class="meter-fill" style="width:${fill}%"></div>`;
+  ladder.forEach(s=>{const pos=(s.q/cap)*100, on=cnt>=s.q?'on':'';h+=`<span class="mk ${on}" style="left:${pos}%"></span><span class="mklbl ${on}" style="left:${pos}%">${s.off}%</span>`;});
+  if(full)h+=`<span class="mkfull">&#9989; full &mdash; max deal!</span>`;
+  $("meter").innerHTML=h;
 }
 function openReview(){const t=totals();if(t.qty===0){$("reviewList").innerHTML=`<div class="empty">No colors picked yet.<br>Tap some colors you like first! &#128075;</div>`;$("totals").innerHTML="";}else{const g={};Object.entries(picks).forEach(([k,v])=>{(g[v.typeName]=g[v.typeName]||[]).push([k,v]);});$("reviewList").innerHTML=Object.entries(g).map(([tn,arr])=>`<div class="listgrp"><h3>${tn} <span style="color:#69727e;font-weight:500">(${arr.length})</span></h3>`+arr.map(([k,v])=>`<div class="li"><img src="${v.img}" alt=""> ${v.colorName} <span style="color:#69727e">${money(v.price)}</span><button class="x" onclick="removeKey('${k}')">Remove</button></div>`).join("")+`</div>`).join("");$("totals").innerHTML=t.cats.map(c=>`<div style="margin-bottom:8px"><b>${c.name}</b> &mdash; ${c.count} roll${c.count!=1?'s':''}<br>`+(c.off?`<span class="save">${c.off}% off</span> &rarr; <b>${money(c.final)}</b> <span class="strike">${money(c.sub)}</span>`:`No discount yet${c.next?` (${c.next.q-c.count} more for ${c.next.off}% off)`:''} &rarr; <b>${money(c.sub)}</b>`)+`</div>`).join("")+`<div style="border-top:2px solid #fff;margin-top:8px;padding-top:8px"><div>Items: ${money(t.full)}</div><div class="save">Sale discount: &minus;${money(t.saved)}</div><div>Shipping: ${t.shipping===0?'<b>FREE</b>':money(t.shipping)+(t.toFree>0?` <span style=\"color:#69727e\">(add ${money(t.toFree)} for free)</span>`:'')}</div><div>PA sales tax (6%): ${money(t.tax)}</div><div style="margin-top:6px;font-size:18px"><b>Total: <span class="big">${money(t.grand)}</span></b></div></div>`;}$("sendBtn").innerHTML=`&#128241; Text my picks${SON_NAME?(' to '+SON_NAME):''}`;$("budgetInput").value=budget>0?budget:'';renderBudget();$("reviewOverlay").classList.add("show");}
 function removeKey(k){delete picks[k];renderType();updateBar();openReview();}
