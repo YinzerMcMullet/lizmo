@@ -32,6 +32,8 @@
   .subtab{flex:0 0 auto;padding:10px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;font-size:15px;font-weight:600;white-space:nowrap;color:var(--muted);}
   .subtab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
   .swipe-hint{text-align:center;font-size:12px;color:var(--muted);margin:-2px 0 2px;}
+  .salebanner{margin:10px 12px 0;background:var(--teal-soft);border:1px solid #cdeeec;border-radius:12px;padding:9px 12px;font-size:13.5px;color:var(--teal-dark);text-align:center;line-height:1.45;}
+  .salebanner .ladder{font-size:12px;opacity:.85;letter-spacing:.3px;}
   .typeinfo{margin:2px 12px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
   .typeinfo h2{margin:0 0 2px;font-size:20px;color:var(--ink);}
   .typeinfo .price{font-size:14px;font-weight:600;color:var(--teal-dark);}
@@ -94,6 +96,7 @@
   <p>Pick the ones you like &mdash; I'll get the rest!</p>
 </header>
 <div class="pagetabs" id="pagetabs"></div>
+<div class="salebanner" id="saleBanner"></div>
 <div class="swipe-hint">&#11013; swipe the buttons below for more kinds &#10145;</div>
 <div class="subtabs" id="subtabs"></div>
 <div class="typeinfo" id="typeinfo"></div>
@@ -160,7 +163,7 @@ function renderType(){
     return `<div class="swatch ${sel}" onclick="toggle(${curPage},${curType},${i})"><div class="tick">&#10003;</div><img class="chip" loading="lazy" src="${c.img}" alt="${c.n}"><div class="nm">${c.n}</div><div class="pr">${money(c.p)}</div></div>`;
   }).join("");
 }
-function setPage(i){curPage=i;curType=0;renderPageTabs();renderSubTabs();renderType();window.scrollTo(0,0);}
+function setPage(i){curPage=i;curType=0;renderPageTabs();renderSubTabs();renderSaleBanner();renderType();updateBar();window.scrollTo(0,0);}
 function setType(i){curType=i;renderSubTabs();renderType();window.scrollTo({top:0,behavior:'smooth'});}
 function toggle(p,t,i){const k=keyOf(p,t,i);const ty=DATA[p].types[t];const c=ty.colors[i];if(picks[k])delete picks[k];else picks[k]={page:p,typeName:ty.name,colorName:c.n,img:c.img,price:c.p};renderType();updateBar();}
 // Sale ladders taken straight from Bambu's promo pages (verified 2026-06-19):
@@ -187,13 +190,23 @@ function totals(){
   const grand=final+shipping+tax;
   return {qty,full,final,saved:full-final,cats,shipping,tax,grand,toFree:Math.max(0,FREE_SHIP_MIN-final)};
 }
+function renderSaleBanner(){
+  const pg=curPage, isAes=/aesthetic/i.test(DATA[pg].name), ladder=ladderFor(pg);
+  const cap=ladder[ladder.length-1].q, maxoff=ladder[ladder.length-1].off;
+  const steps=ladder.map(s=>`${s.q}&rarr;${s.off}%`).join('   ');
+  $("saleBanner").innerHTML=`<b>${isAes?'✨ Aesthetic sale &mdash; pick up to '+cap+' rolls':'\u{1F6CD}️ Bulk sale &mdash; pick up to '+cap+' rolls'}</b> (up to ${maxoff}% off)<br><span class="ladder">${steps} off</span>`;
+}
 function updateBar(){
-  const t=totals();$("count").innerHTML=`${t.qty}<small>rolls</small>`;
-  if(t.qty===0){$("tier").innerHTML="Tap the colors you like &mdash; pick away! &#128075;";return;}
-  let extra="";
-  if(budget>0){const d=budget-t.grand;extra=d>=0?` &bull; <b style="color:#16a34a">${money(d)} under</b>`:` &bull; <b style="color:#dc2626">over by ${money(-d)}</b>`;}
-  else if(t.toFree>0){extra=` &bull; <span style="color:#69727e">${money(t.toFree)} to free ship</span>`;}
-  $("tier").innerHTML=`Now: <b>${money(t.grand)}</b> <small style="color:#69727e">incl. ship+tax</small>${extra}`;
+  const t=totals();
+  const pg=curPage, isAes=/aesthetic/i.test(DATA[pg].name), label=isAes?'aesthetic':'basic';
+  const ladder=ladderFor(pg), cat=t.cats.find(c=>c.page===pg), cnt=cat?cat.count:0, off=cat?cat.off:0, nx=nextStep(ladder,cnt);
+  $("count").innerHTML=`${cnt}<small>${label}</small>`;
+  let l1;
+  if(cnt===0){l1=`Pick <b>${ladder[0].q}</b> for <b>${ladder[0].off}% off</b> &mdash; up to ${ladder[ladder.length-1].q} rolls!`;}
+  else{l1=`<b>${off}% off</b>`+(nx?` &bull; ${nx.q-cnt} more &rarr; <b>${nx.off}% off</b>`:` &bull; biggest discount! &#127881;`);}
+  let l2='';
+  if(t.qty>0){l2=`Total: <b>${money(t.grand)}</b>`;if(budget>0){const d=budget-t.grand;l2+=d>=0?` &middot; <b style="color:#16a34a">${money(d)} left</b>`:` &middot; <b style="color:#dc2626">over ${money(-d)}</b>`;}else if(t.toFree>0){l2+=` &middot; <span style="color:#69727e">+${money(t.toFree)}=free ship</span>`;}}
+  $("tier").innerHTML=l2?`${l1}<br><span style="color:#69727e">${l2}</span>`:l1;
 }
 function openReview(){const t=totals();if(t.qty===0){$("reviewList").innerHTML=`<div class="empty">No colors picked yet.<br>Tap some colors you like first! &#128075;</div>`;$("totals").innerHTML="";}else{const g={};Object.entries(picks).forEach(([k,v])=>{(g[v.typeName]=g[v.typeName]||[]).push([k,v]);});$("reviewList").innerHTML=Object.entries(g).map(([tn,arr])=>`<div class="listgrp"><h3>${tn} <span style="color:#69727e;font-weight:500">(${arr.length})</span></h3>`+arr.map(([k,v])=>`<div class="li"><img src="${v.img}" alt=""> ${v.colorName} <span style="color:#69727e">${money(v.price)}</span><button class="x" onclick="removeKey('${k}')">Remove</button></div>`).join("")+`</div>`).join("");$("totals").innerHTML=t.cats.map(c=>`<div style="margin-bottom:8px"><b>${c.name}</b> &mdash; ${c.count} roll${c.count!=1?'s':''}<br>`+(c.off?`<span class="save">${c.off}% off</span> &rarr; <b>${money(c.final)}</b> <span class="strike">${money(c.sub)}</span>`:`No discount yet${c.next?` (${c.next.q-c.count} more for ${c.next.off}% off)`:''} &rarr; <b>${money(c.sub)}</b>`)+`</div>`).join("")+`<div style="border-top:2px solid #fff;margin-top:8px;padding-top:8px"><div>Items: ${money(t.full)}</div><div class="save">Sale discount: &minus;${money(t.saved)}</div><div>Shipping: ${t.shipping===0?'<b>FREE</b>':money(t.shipping)+(t.toFree>0?` <span style=\"color:#69727e\">(add ${money(t.toFree)} for free)</span>`:'')}</div><div>PA sales tax (6%): ${money(t.tax)}</div><div style="margin-top:6px;font-size:18px"><b>Total: <span class="big">${money(t.grand)}</span></b></div></div>`;}$("sendBtn").innerHTML=`&#128241; Text my picks${SON_NAME?(' to '+SON_NAME):''}`;$("budgetInput").value=budget>0?budget:'';renderBudget();$("reviewOverlay").classList.add("show");}
 function removeKey(k){delete picks[k];renderType();updateBar();openReview();}
@@ -209,7 +222,7 @@ function openHelp(){$("helpOverlay").classList.add("show");}
 function closeHelp(){$("helpOverlay").classList.remove("show");}
 let tt;function showToast(m){const e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2600);}
 document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");}));
-renderPageTabs();renderSubTabs();renderType();updateBar();
+renderPageTabs();renderSubTabs();renderSaleBanner();renderType();updateBar();
 if(!localStorage.getItem("lizmoSeenPickerHelp")){openHelp();localStorage.setItem("lizmoSeenPickerHelp","1");}
 </script>
 </body>
