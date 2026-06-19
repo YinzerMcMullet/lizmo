@@ -164,7 +164,7 @@ function removeKey(k){delete picks[k];renderType();updateBar();openReview();}
 function closeReview(){$("reviewOverlay").classList.remove("show");}
 function buildText(){const t=totals();if(t.qty===0)return"Hi! I haven't picked anything yet.";const g={};Object.values(picks).forEach(v=>{(g[v.typeName]=g[v.typeName]||[]).push(v.colorName);});let s="\u{1F6CD}️ MY PICKS\n\n";for(const[tn,arr]of Object.entries(g)){s+=`${tn}:\n`;arr.forEach(c=>s+=`  - ${c}\n`);s+="\n";}s+=`Total rolls: ${t.qty}\nDiscount: ${t.off}% off\nEstimated total: ${money(t.final)} (was ${money(t.full)})\n\nLove you! ❤️`;return s;}
 function sendText(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const num=(SON_PHONE||"").replace(/[^\d+]/g,"");location.href="sms:"+num+"?body="+encodeURIComponent(buildText());}
-async function sharePicks(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const text=buildText();if(navigator.share){try{await navigator.share({title:"My Filament Picks",text});}catch(e){}}else copyPicks();}
+async function sharePicks(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const text=buildText();if(navigator.share){try{await navigator.share({title:"My Picks",text});}catch(e){}}else copyPicks();}
 function copyPicks(){const t=totals();if(t.qty===0){showToast("Pick some colors first \u{1F44B}");return;}const text=buildText();if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>showToast("Copied! Paste it in a text \u{1F4CB}"),()=>fb(text));else fb(text);}
 function fb(text){const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");showToast("Copied! Paste it in a text \u{1F4CB}");}catch(e){showToast("Press and hold to copy");}document.body.removeChild(ta);}
 function openHelp(){$("helpOverlay").classList.add("show");}
@@ -172,7 +172,7 @@ function closeHelp(){$("helpOverlay").classList.remove("show");}
 let tt;function showToast(m){const e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2600);}
 document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");}));
 renderPageTabs();renderSubTabs();renderType();updateBar();
-if(!localStorage.getItem("lizmoSeenFilamentHelp")){openHelp();localStorage.setItem("lizmoSeenFilamentHelp","1");}
+if(!localStorage.getItem("lizmoSeenPickerHelp")){openHelp();localStorage.setItem("lizmoSeenPickerHelp","1");}
 </script>
 </body>
 </html>
